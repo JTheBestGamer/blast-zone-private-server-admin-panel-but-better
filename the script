@@ -1,0 +1,177 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wizard"))()
+local Window = Library:NewWindow("BlastZone")
+
+-- Tabs
+local Zone = Window:NewSection("Enter Command")
+local Zone2 = Window:NewSection("Props") -- Textbox-based props
+local Zone2Dropdown = Window:NewSection("Props (Dropdown)") -- Dropdown-based props
+local Zone3 = Window:NewSection("Maps")
+local Zone3Dropdown = Window:NewSection("Maps (Dropdown)")
+
+-- Variables
+local textboxProp = ""
+local textboxPlayer = ""
+local textboxAttributes = ""
+
+local dropdownProp = ""
+local dropdownPlayer = ""
+local dropdownAttributes = ""
+
+local commandInput = ""
+local maps = ""
+local selectedMap = ""
+
+local Players = game:GetService("Players")
+local playerListDropdown
+
+local function getPlayerNames()
+    local names = {}
+    for _, p in ipairs(Players:GetPlayers()) do
+        table.insert(names, p.Name)
+    end
+    return names
+end
+
+-- 📜 Enter Command Tab
+Zone:CreateTextbox("Raw Command", function(cmd)
+    commandInput = cmd
+    local args = {
+        [1] = commandInput,
+        [2] = {}
+    }
+    print("Running:", commandInput)
+    game:GetService("ReplicatedStorage"):WaitForChild("CmdrClient"):WaitForChild("CmdrFunction"):InvokeServer(unpack(args))
+end)
+
+-- 🧾 Props Tab (Textbox)
+Zone2:CreateTextbox("Prop", function(thing)
+    textboxProp = thing
+end)
+
+Zone2:CreateTextbox("Player", function(person)
+    textboxPlayer = person
+end)
+
+Zone2:CreateTextbox("Attributes", function(attr)
+    textboxAttributes = attr
+end)
+
+Zone2:CreateButton("Spawn", function()
+    if textboxProp == "" or textboxPlayer == "" then
+        warn("Missing prop or player in textboxes.")
+        return
+    end
+
+    local command = "spawnprop " .. textboxProp .. " " .. textboxPlayer
+    if textboxAttributes ~= "" then
+        command = command .. " " .. textboxAttributes
+    end
+
+    print("Sending command (Textbox):", command)
+
+    local args = {
+        [1] = command,
+        [2] = {}
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("CmdrClient"):WaitForChild("CmdrFunction"):InvokeServer(unpack(args))
+end)
+
+-- 🔽 Props (Dropdown) Tab
+Zone2Dropdown:CreateDropdown("Common Props", {
+    "Bomb", "ImpulseBomb", "Nuke", "ImpulseNuke",
+    "Car", "GoKart", "GoKartInvincible",
+    "Skellington", "BigSkellington", "Zobie", "BigZobie",
+    "Anvil", "GoldenAnvil", "PlatinumAnvil"
+}, 1, function(text)
+    dropdownProp = text
+    print("Selected Prop: " .. dropdownProp)
+end)
+
+playerListDropdown = Zone2Dropdown:CreateDropdown("Select Player", getPlayerNames(), 1, function(selected)
+    dropdownPlayer = selected
+    print("Selected player: " .. dropdownPlayer)
+end)
+
+Zone2Dropdown:CreateButton("Refresh Player List", function()
+    local updated = getPlayerNames()
+    playerListDropdown:Clear()
+    for _, name in ipairs(updated) do
+        playerListDropdown:Add(name)
+    end
+    print("Player list refreshed.")
+end)
+
+Zone2Dropdown:CreateTextbox("Attributes", function(attr)
+    dropdownAttributes = attr
+end)
+
+Zone2Dropdown:CreateButton("Spawn", function()
+    if dropdownProp == "" or dropdownPlayer == "" then
+        warn("Missing prop or player in dropdowns.")
+        return
+    end
+
+    local command = "spawnprop " .. dropdownProp .. " " .. dropdownPlayer
+    if dropdownAttributes ~= "" then
+        command = command .. " " .. dropdownAttributes
+    end
+
+    print("Sending command (Dropdown):", command)
+
+    local args = {
+        [1] = command,
+        [2] = {}
+    }
+    game:GetService("ReplicatedStorage"):WaitForChild("CmdrClient"):WaitForChild("CmdrFunction"):InvokeServer(unpack(args))
+end)
+
+-- 🌍 Maps Tab (Textbox)
+Zone3:CreateTextbox("Map Name", function(places)
+    maps = places
+end)
+
+Zone3:CreateButton("Load Map", function()
+    if maps == "" then
+        warn("No map name provided.")
+        return
+    end
+
+    local command = "loadmap " .. maps
+
+    local args = {
+        [1] = command,
+        [2] = {}
+    }
+
+    print("Sending command:", command)
+    game:GetService("ReplicatedStorage"):WaitForChild("CmdrClient"):WaitForChild("CmdrFunction"):InvokeServer(unpack(args))
+end)
+
+-- 🌍 Maps Tab (Dropdown)
+Zone3Dropdown:CreateDropdown("Select Map", {
+    "The Fields", "Roblox HQ", "Robloxia", "Lobby", "Haunted Mansion", "Limbo",
+    "Baseplate", "The Hill", "Raving Raceway", "Rocket Arena", "Mountain Ridge",
+    "Blast Summit", "Blast Box", "Reactor Core", "Bamboo Beach", "Lunar Arena",
+    "BloxBurg", "Cloud Pass", "Raven Rock", "Blackrock Castle", "Chaos Canyon",
+    "Crossroads"
+}, 1, function(choice)
+    selectedMap = choice
+    print("Selected map:", selectedMap)
+end)
+
+Zone3Dropdown:CreateButton("Load Map", function()
+    if selectedMap == "" then
+        warn("No map selected.")
+        return
+    end
+
+    local command = "loadmap " .. selectedMap
+
+    local args = {
+        [1] = command,
+        [2] = {}
+    }
+
+    print("Sending dropdown map command:", command)
+    game:GetService("ReplicatedStorage"):WaitForChild("CmdrClient"):WaitForChild("CmdrFunction"):InvokeServer(unpack(args))
+end)
